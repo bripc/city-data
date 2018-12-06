@@ -1,11 +1,11 @@
 import argparse
-import requests
 import json
 import re
 from bs4 import BeautifulSoup
 
 # local imports
 import config
+import util
 import tree
 
 # global vars
@@ -23,24 +23,15 @@ def parse_arguments():
 
 
 def fetch_geojson():
-    print('Fetching GeoJSON data...')
-    r = requests.get(config.TREES_GEOJSON_URL, stream=True)
-    print('Saving to', config.LOCAL_DATA_PATH)
-    with open(tree_file, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    print('GeoJSON saved as trees.geojson')
+    print('Fetching GeoJSON data from', config.TREES_GEOJSON_URL, '...')
+    util.requests_write_large_file(config.TREES_GEOJSON_URL, tree_file)
+    print('GeoJSON saved as', tree_file)
 
 
 def scrape_for_flora():
-    print('Scraping', config.FLORA_URL, 'for native tree data')
+    print('Scraping', config.FLORA_URL, 'for native flora data')
     print('Downloading HTML...')
-    r = requests.get(config.FLORA_URL, stream=True)
-    with open(native_flora_file, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
+    util.requests_write_large_file(config.FLORA_URL, native_flora_file)
     print('Page has been saved as', native_flora_file)
 
 
@@ -52,7 +43,7 @@ def clean_flora_data():
     a_tags = soup.find_all(href=re.compile(config.FLORA_A_TAG_IDENTIFIER))
     flora = []
     for a in a_tags:
-        flora.append(a.get_text())
+        flora.append(util.string_cleanup(a.get_text()))
     print('Native flora saved')
 
 
