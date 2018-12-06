@@ -1,4 +1,5 @@
 import requests
+import bisect
 
 
 def requests_write_large_file(url, filename):
@@ -11,3 +12,11 @@ def requests_write_large_file(url, filename):
 
 def string_cleanup(string):
     return string.strip().replace('.', '').lower()
+
+
+def binary_search(array, value):
+    """ Locate the leftmost value exactly equal to value """
+    i = bisect.bisect_left(array, value)
+    if i != len(array) and array[i] == value:
+        return array[i]
+    return None
