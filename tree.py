@@ -5,6 +5,7 @@ class Tree:
         self.species = props['SPECIES']
         self.botanical = props['BOTANICAL']
         self.geometry = geometry
+        self.isNative = None
 
     def __repr__(self):
         return "<Tree species:%s, botanical:%s, address:%s>" % (self.species, self.botanical, self.address)
