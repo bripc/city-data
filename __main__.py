@@ -7,11 +7,11 @@ from bs4 import BeautifulSoup
 import config
 import util
 import tree
+import classify
 
 # global vars
 tree_file = config.LOCAL_DATA_PATH + 'trees.geojson'
 native_flora_file = config.LOCAL_DATA_PATH + 'native_flora.html'
-urban_forest = []
 
 
 def parse_arguments():
@@ -41,27 +41,33 @@ def clean_flora_data():
         soup = BeautifulSoup(fp, 'html.parser')
 
     a_tags = soup.find_all(href=re.compile(config.FLORA_A_TAG_IDENTIFIER))
-    flora = []
+    ca_native_flora = []
     for a in a_tags:
-        flora.append(util.string_cleanup(a.get_text()))
+        ca_native_flora.append(util.string_cleanup(a.get_text()))
+    ca_native_flora.sort()
     print('Native flora saved')
+    return ca_native_flora
 
 
 def create_forest():
     print('Creating urban forest with GEOJSON tree data...')
     with open(tree_file) as geojson_file:
         geojson_data = json.load(geojson_file)
+    urban_forest = []
     for feature in geojson_data['features']:
         urban_forest.append(tree.Tree(feature['properties'], feature['geometry']))
+    urban_forest = sorted(urban_forest, key=lambda t: t.scientific_name)
     print('Urban forest created')
+    return urban_forest
 
 
 def main(args):
     if args.fetch:
         fetch_geojson()
         scrape_for_flora()
-    create_forest()
-    clean_flora_data()
+    urban_forest = create_forest()
+    ca_native_flora = clean_flora_data()
+    classify.classify_as_native(urban_forest, ca_native_flora)
 
 
 if __name__ == '__main__':
