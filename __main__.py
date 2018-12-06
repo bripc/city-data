@@ -1,6 +1,8 @@
 import argparse
 import requests
 import json
+import re
+from bs4 import BeautifulSoup
 
 # local imports
 import config
@@ -8,6 +10,7 @@ import tree
 
 # global vars
 tree_file = config.LOCAL_DATA_PATH + 'trees.geojson'
+native_flora_file = config.LOCAL_DATA_PATH + 'native_flora.html'
 urban_forest = []
 
 
@@ -32,7 +35,25 @@ def fetch_geojson():
 
 def scrape_for_flora():
     print('Scraping', config.FLORA_URL, 'for native tree data')
-    # scrape for data here
+    print('Downloading HTML...')
+    r = requests.get(config.FLORA_URL, stream=True)
+    with open(native_flora_file, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    print('Page has been saved as', native_flora_file)
+
+
+def clean_flora_data():
+    print('Cleaning up the native flora data...')
+    with open(native_flora_file) as fp:
+        soup = BeautifulSoup(fp, 'html.parser')
+
+    a_tags = soup.find_all(href=re.compile(config.FLORA_A_TAG_IDENTIFIER))
+    flora = []
+    for a in a_tags:
+        flora.append(a.get_text())
+    print('Native flora saved')
 
 
 def create_forest():
@@ -49,6 +70,7 @@ def main(args):
         fetch_geojson()
         scrape_for_flora()
     create_forest()
+    clean_flora_data()
 
 
 if __name__ == '__main__':
