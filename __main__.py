@@ -1,3 +1,4 @@
+# lib imports
 import argparse
 import json
 import re
@@ -14,6 +15,7 @@ tree_file = config.LOCAL_DATA_PATH + 'trees.geojson'
 native_flora_file = config.LOCAL_DATA_PATH + 'native_flora.html'
 
 
+# separate out argparse so that it can be easily added to later
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Options for running statistics on Sacramento's trees.")
     parser.add_argument('-f', '--fetch', action='store_true',
@@ -22,12 +24,14 @@ def parse_arguments():
     return parser.parse_args()
 
 
+# get the open source tree data from the City of Sacramento's ArcGIS API
 def fetch_geojson():
     print('Fetching GeoJSON data from', config.TREES_GEOJSON_URL, '...')
     util.requests_write_large_file(config.TREES_GEOJSON_URL, tree_file)
     print('GeoJSON saved as', tree_file)
 
 
+# web scrape UC Berkeley's native flora HTML database for a list of all of CA's native flora
 def scrape_for_flora():
     print('Scraping', config.FLORA_URL, 'for native flora data')
     print('Downloading HTML...')
@@ -35,6 +39,7 @@ def scrape_for_flora():
     print('Page has been saved as', native_flora_file)
 
 
+# use BeautifulSoup library to get all of the names of the flora from the downloaded HTML page
 def clean_flora_data():
     print('Cleaning up the native flora data...')
     with open(native_flora_file) as fp:
@@ -49,6 +54,7 @@ def clean_flora_data():
     return ca_native_flora
 
 
+# create Tree objects out of the raw GeoJSON data
 def create_forest():
     print('Creating urban forest with GEOJSON tree data...')
     with open(tree_file) as geojson_file:
